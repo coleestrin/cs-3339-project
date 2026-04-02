@@ -10,7 +10,8 @@ main:
 	sub $t3, $t1, $t0
 	mul $t4, $t1, $t0
 	
-	sw $t4, (finAdd)
+	la $t5, finAdd
+	sw $t4, 0($t5)
 	
 	#exit
 	li $v0, 10
