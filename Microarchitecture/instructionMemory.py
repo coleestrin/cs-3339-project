@@ -1,0 +1,2 @@
+class instructionMemory:
+    pass
