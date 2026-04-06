@@ -1,26 +1,61 @@
+from Microarchitecture import *
+
 class CPU:
     
     def __init__(self, fileName, debug=False):
-        self.__instructionMemory = __instructionMemory(fileName)
+        self.__instructionMemory = instructionMemory(fileName)
         self.__dataMemory = dataMemory()
         self.__registerFile = registerFile()
         self.__ALU = ALU()
         self.__debug = debug
+        self.__PC = 0
+        self.__cycles = 0
+        self.IF_ID =  {"opcode": "", "PC": 0, "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0}
+        self.ID_EX =  {"opcode": "", "PC": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0, "readData1": 0, "readData2": 0, "immediate": 0, "WriteReg": 0}
+        self.EX_MEM = {"opcode": "", "PC": 0, "RegWrite" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "ALUResult": 0, "writeData": 0, "WriteReg": 0}
+        self.MEM_WB = {"opcode": "", "PC": 0, "RegWrite" : 0, "MemtoReg" : 0, "ReadData": 0, "ALUResult": 0, "WriteReg" : 0}
 
         def getControlSignals(self, opCode):
+            """
+            Returns a dictionary of control signals for a given opcode.
+            
+            :param self: 
+            :param opCode: String of the keyword of the instruction
+            """
             control_signals = {
-                "ADD"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "ADDI" : {"RegDst": 0, "RegWrite" : 1, "ALUSrc" : 1, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "MUL"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "SUB"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "AND"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "OR"   : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "SLL"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "SRL"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "LW"   : {"RegDst": 0, "RegWrite" : 1, "ALUSrc" : 1, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 1, "Branch" : 0, "Jump" : 0},
-                "SW"   : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 1, "MemWrite" : 1, "MemtoReg" : 0, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
-                "BEQ"  : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "Branch" : 1, "Jump" : 0},
-                "J"    : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "Branch" : 0, "Jump" : 1}, 
-                "NOP"  : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "Branch" : 0, "Jump" : 0},
+                "ADD"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "ADDI" : {"RegDst": 0, "RegWrite" : 1, "ALUSrc" : 1, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "MUL"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "SUB"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "AND"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "OR"   : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "SLL"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "SRL"  : {"RegDst": 1, "RegWrite" : 1, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 1, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "LW"   : {"RegDst": 0, "RegWrite" : 1, "ALUSrc" : 1, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 1, "PCSrc" : 0, "Jump" : 0},
+                "SW"   : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 1, "MemWrite" : 1, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+                "BEQ"  : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 1, "Jump" : 0},
+                "J"    : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 1}, 
+                "NOP"  : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
             }
             return control_signals.get(opCode)
+        
+        def run(self):
+            """
+            Main execution loop of the CPU.
+            
+            :param self: 
+            """
+
+            maxPC = self.__instructionMemory.getInstructionCount() * 4  
+            ControlSignals = {}
+
+            while self.__PC < maxPC:
+
+                ControlSignals = self.getControlSignals(self.IF_ID["opcode"])
+
+                self.__instructionMemory.run(self.__PC)
+                self.__registerFile.run(self.IF_ID["rs"], self.IF_ID["rt"],  self.IF_ID["rd"] if ControlSignals["RegDst"] else self.IF_ID["rt"],  ControlSignals["RegWrite"])
+                self.__ALU.run(self.ID_EX["opcode"], self.ID_EX["readData1"], self.ID_EX["readData2"] if not ControlSignals["ALUSrc"] else self.ID_EX["immediate"])
+                self.__dataMemory.run(self.EX_MEM["ALUResult"], self.EX_MEM["writeData"], ControlSignals["MemWrite"], ControlSignals["MemRead"])
+                
+                # Todo: write data from microarchitecture to state regisers and handle PC updates
