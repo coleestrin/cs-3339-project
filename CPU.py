@@ -16,9 +16,9 @@ class CPU:
         self.__debug = debug
         self.__PC = 0
         self.__cycles = 0
-        self.IF_ID =  {"opcode": None, "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0}
+        self.IF_ID =  {"opcode": None, "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0, "shamt": 0}
         self.ID_EX =  {"opcode": None, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0,
-                        "PCSrc" : 0, "Jump" : 0, "readData1": 0, "readData2": 0, "immediate": 0, "WriteReg": 0, "address": 0}
+                        "PCSrc" : 0, "Jump" : 0, "readData1": 0, "readData2": 0, "immediate": 0, "WriteReg": 0, "address": 0, "shamt": 0}
         self.EX_MEM = {"opcode": None, "RegWrite" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "WriteReg": 0, "ALUResult": 0, "writeData": 0}
         self.MEM_WB = {"opcode": None, "RegWrite" : 0, "MemtoReg" : 0, "ReadData": 0, "ALUResult": 0, "WriteReg" : 0}
 
@@ -67,14 +67,15 @@ class CPU:
             self.__registerFile.run(self.IF_ID["rs"], self.IF_ID["rt"], 0, 0, 0)
             
             self.__ALU.run(self.ID_EX["opcode"], self.ID_EX["readData1"],
-                            self.ID_EX["readData2"] if not ControlSignals["ALUSrc"] else self.ID_EX["immediate"])
+                            self.ID_EX["readData2"] if not self.ID_EX["ALUSrc"] else self.ID_EX["immediate"],
+                            self.ID_EX["shamt"])
             
             self.__dataMemory.run(self.EX_MEM["ALUResult"], self.EX_MEM["writeData"], ControlSignals["MemWrite"], ControlSignals["MemRead"])
 
             # update the program counter
             if self.ID_EX["Jump"]:
                 self.__PC = self.ID_EX["address"]
-            elif self.ID_EX["PCSrc"] and self.__ALU.zero():
+            elif self.ID_EX["PCSrc"] and self.__ALU.zeroFlag():
                 self.__PC += (self.ID_EX["immediate"] << 2) + 4
             else:
                 self.__PC += 4
@@ -108,14 +109,16 @@ class CPU:
                           "readData2": self.__registerFile.getReadData2(), 
                           "immediate": self.IF_ID["immediate"], 
                           "WriteReg": self.IF_ID["rd"] if ControlSignals["RegDst"] else self.IF_ID["rt"], 
-                          "address": self.IF_ID["address"]}
+                          "address": self.IF_ID["address"],
+                          "shamt": self.IF_ID["shamt"]}
             
             self.IF_ID = {"opcode": self.__instructionMemory.getOpcode(),
                            "rs": self.__instructionMemory.getRs(),
                            "rt": self.__instructionMemory.getRt(),
                            "rd": self.__instructionMemory.getRd(),
                            "immediate": self.__instructionMemory.getImmediate(),
-                           "address": self.__instructionMemory.getAddress()}
+                           "address": self.__instructionMemory.getAddress(),
+                           "shamt": self.__instructionMemory.getShamt()}
             
 
             # Write back to register file
@@ -124,3 +127,5 @@ class CPU:
                                     self.MEM_WB["RegWrite"])
             
             self.__cycles += 1
+
+        print(self.__registerFile.dump())

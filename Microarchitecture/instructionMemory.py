@@ -37,4 +37,7 @@ class InstructionMemory:
     def getAddress(self):
         return self.current_instruction["address"] if "address" in self.current_instruction else 0
     
+    def getShamt(self):
+        return self.current_instruction["shamt"] if "shamt" in self.current_instruction else 0
+    
     
