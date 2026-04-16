@@ -31,3 +31,16 @@ class RegisterFile:
         for i in range(32):
             print(f"${REG_NAMES[i]} ({i:02d}) = 0x{self.read(i):08X}")
 
+    def run(self, readReg1, readReg2, writeReg, writeData, RegWrite):
+        if RegWrite:
+            self.write(writeReg, writeData)
+            return
+        
+        self.readData1 = self.read(readReg1)
+        self.readData2 = self.read(readReg2)
+
+    def getReadData1(self):
+        return self.readData1
+    
+    def getReadData2(self):
+        return self.readData2

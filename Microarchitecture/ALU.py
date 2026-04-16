@@ -1,8 +1,8 @@
 class ALU:
 
     def __init__(self):
-        zero = True
-        result = 0
+        self.zero = True
+        self.result = 0
 
     def run(self, opcode, operand1, operand2):
         if opcode == "ADD" or opcode == "ADDI" or opcode == "LW" or opcode == "SW":

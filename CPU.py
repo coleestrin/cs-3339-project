@@ -1,20 +1,26 @@
-from Microarchitecture import *
+from Microarchitecture.instructionMemory import *
+from Microarchitecture.dataMemory import *
+from Microarchitecture.registerFile import *
+from Microarchitecture.ALU import *
+
+MEMORY_SIZE = 1024  # Size of data memory in bytes
+BASE_ADDRESS = 0x0  # Base address for data memory
 
 class CPU:
     
     def __init__(self, fileName, debug=False):
-        self.__instructionMemory = instructionMemory(fileName)
-        self.__dataMemory = dataMemory()
-        self.__registerFile = registerFile()
+        self.__instructionMemory = InstructionMemory(fileName)
+        self.__dataMemory = Memory(MEMORY_SIZE, BASE_ADDRESS)
+        self.__registerFile = RegisterFile()
         self.__ALU = ALU()
         self.__debug = debug
         self.__PC = 0
         self.__cycles = 0
-        self.IF_ID =  {"opcode": "", "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0}
-        self.ID_EX =  {"opcode": "", "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0,
+        self.IF_ID =  {"opcode": None, "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0}
+        self.ID_EX =  {"opcode": None, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0,
                         "PCSrc" : 0, "Jump" : 0, "readData1": 0, "readData2": 0, "immediate": 0, "WriteReg": 0, "address": 0}
-        self.EX_MEM = {"opcode": "", "RegWrite" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "ALUResult": 0, "writeData": 0}
-        self.MEM_WB = {"opcode": "", "RegWrite" : 0, "MemtoReg" : 0, "ReadData": 0, "ALUResult": 0, "WriteReg" : 0}
+        self.EX_MEM = {"opcode": None, "RegWrite" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "WriteReg": 0, "ALUResult": 0, "writeData": 0}
+        self.MEM_WB = {"opcode": None, "RegWrite" : 0, "MemtoReg" : 0, "ReadData": 0, "ALUResult": 0, "WriteReg" : 0}
 
     def getControlSignals(self, opCode):
         """
@@ -37,6 +43,7 @@ class CPU:
             "BEQ"  : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 1, "Jump" : 0},
             "J"    : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 1}, 
             "NOP"  : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0},
+            None   : {"RegDst": 0, "RegWrite" : 0, "ALUSrc" : 0, "MemWrite" : 0, "MemtoReg" : 0, "MemRead" : 0, "PCSrc" : 0, "Jump" : 0}
         }
         return control_signals.get(opCode)
     
@@ -47,7 +54,7 @@ class CPU:
         :param self: 
         """
 
-        maxPC = self.__instructionMemory.getInstructionCount() * 4  
+        maxPC = self.__instructionMemory.getMaxPC()  
         ControlSignals = {}
 
         while self.__PC < maxPC:
@@ -65,7 +72,7 @@ class CPU:
             self.__dataMemory.run(self.EX_MEM["ALUResult"], self.EX_MEM["writeData"], ControlSignals["MemWrite"], ControlSignals["MemRead"])
 
             # update the program counter
-            if self.ID_EX["jump"]:
+            if self.ID_EX["Jump"]:
                 self.__PC = self.ID_EX["address"]
             elif self.ID_EX["PCSrc"] and self.__ALU.zero():
                 self.__PC += (self.ID_EX["immediate"] << 2) + 4
@@ -73,12 +80,21 @@ class CPU:
                 self.__PC += 4
 
             # update state registers
-            self.IF_ID = {"opcode": self.__instructionMemory.getOpcode(),
-                           "rs": self.__instructionMemory.getRs(),
-                           "rt": self.__instructionMemory.getRt(),
-                           "rd": self.__instructionMemory.getRd(),
-                           "immediate": self.__instructionMemory.getImmediate(),
-                           "address": self.__instructionMemory.getAddress()}
+            self.MEM_WB = {"opcode": self.EX_MEM["opcode"], 
+                           "RegWrite" : self.EX_MEM["RegWrite"], 
+                           "MemtoReg" : self.EX_MEM["MemtoReg"], 
+                           "ReadData": self.__dataMemory.getReadData(), 
+                           "ALUResult": self.EX_MEM["ALUResult"], 
+                           "WriteReg" : self.EX_MEM["WriteReg"]}
+            
+            self.EX_MEM = {"opcode": self.ID_EX["opcode"], 
+                           "RegWrite" : self.ID_EX["RegWrite"], 
+                           "MemWrite" : self.ID_EX["MemWrite"], 
+                           "MemtoReg" : self.ID_EX["MemtoReg"], 
+                           "MemRead" : self.ID_EX["MemRead"], 
+                           "ALUResult": self.__ALU.getResult(), 
+                           "writeData": self.ID_EX["readData2"],
+                           "WriteReg": self.ID_EX["WriteReg"]}
             
             self.ID_EX = {"opcode": self.IF_ID["opcode"], 
                           "RegWrite" : ControlSignals["RegWrite"], 
@@ -94,25 +110,17 @@ class CPU:
                           "WriteReg": self.IF_ID["rd"] if ControlSignals["RegDst"] else self.IF_ID["rt"], 
                           "address": self.IF_ID["address"]}
             
-            self.EX_MEM = {"opcode": self.ID_EX["opcode"], 
-                           "RegWrite" : self.ID_EX["RegWrite"], 
-                           "MemWrite" : self.ID_EX["MemWrite"], 
-                           "MemtoReg" : self.ID_EX["MemtoReg"], 
-                           "MemRead" : self.ID_EX["MemRead"], 
-                           "ALUResult": self.__ALU.getResult(), 
-                           "writeData": self.ID_EX["readData2"]}
-            
-            self.MEM_WB = {"opcode": self.EX_MEM["opcode"], 
-                           "RegWrite" : self.EX_MEM["RegWrite"], 
-                           "MemtoReg" : self.EX_MEM["MemtoReg"], 
-                           "ReadData": self.__dataMemory.getReadData(), 
-                           "ALUResult": self.EX_MEM["ALUResult"], 
-                           "WriteReg" : self.EX_MEM["WriteReg"]}
+            self.IF_ID = {"opcode": self.__instructionMemory.getOpcode(),
+                           "rs": self.__instructionMemory.getRs(),
+                           "rt": self.__instructionMemory.getRt(),
+                           "rd": self.__instructionMemory.getRd(),
+                           "immediate": self.__instructionMemory.getImmediate(),
+                           "address": self.__instructionMemory.getAddress()}
             
 
             # Write back to register file
             self.__registerFile.run(0, 0, self.MEM_WB["WriteReg"], 
-                                    self.MEM_WB["ReadData"] if self.MEM_WB["MemtoReg"] else self.MEM_WB["ALUResult"], 
+                                    self.MEM_WB["ALUResult"] if self.MEM_WB["MemtoReg"] else self.MEM_WB["ReadData"], 
                                     self.MEM_WB["RegWrite"])
             
             self.__cycles += 1
