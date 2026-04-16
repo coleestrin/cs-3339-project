@@ -1,4 +1,7 @@
-from Microarchitecture import *
+from Microarchitecture.instructionMemory import *
+from Microarchitecture.dataMemory import *
+from Microarchitecture.registerFile import *
+from Microarchitecture.ALU import *
 
 class CPU:
     

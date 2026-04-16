@@ -1,4 +1,1 @@
-from ALU import *
-from dataMemory import *
-from instructionMemory import *
-from registerFile import *
+__ALL__ = ["ALU", "dataMemory", "instructionMemory", "registerFile"]
