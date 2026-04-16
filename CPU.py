@@ -6,7 +6,7 @@ from Microarchitecture.ALU import *
 class CPU:
     
     def __init__(self, fileName, debug=False):
-        self.__instructionMemory = instructionMemory(fileName)
+        self.__instructionMemory = InstructionMemory(fileName)
         self.__dataMemory = Memory()
         self.__registerFile = RegisterFile()
         self.__ALU = ALU()
@@ -50,7 +50,7 @@ class CPU:
         :param self: 
         """
 
-        maxPC = self.__instructionMemory.getInstructionCount() * 4  
+        maxPC = self.__instructionMemory.getMaxPC()  
         ControlSignals = {}
 
         while self.__PC < maxPC:
