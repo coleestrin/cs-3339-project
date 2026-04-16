@@ -9,6 +9,7 @@ class Memory:
         self.size = size
         self.base_addr = base_addr
         self.byte_arr = bytearray(size)
+        self.readData = 0
     
     def __repr__(self):
         return f"Memory(byte_arr = {self.byte_arr}, size = {self.size}, base_addr = {self.base_addr})"
