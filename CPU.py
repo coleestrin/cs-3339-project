@@ -3,6 +3,9 @@ from Microarchitecture.dataMemory import *
 from Microarchitecture.registerFile import *
 from Microarchitecture.ALU import *
 
+MEMORY_SIZE = 1024  # Size of data memory in bytes
+BASE_ADDRESS = 0x0  # Base address for data memory
+
 class CPU:
     
     def __init__(self, fileName, debug=False):
