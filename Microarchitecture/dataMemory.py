@@ -56,3 +56,12 @@ class Memory:
         self.byte_arr[addr+1] =  (value >> 8) & 0xFF #srl 8 for writing next 8 to mem
         self.byte_arr[addr+2] =  (value >> 16) & 0xFF
         self.byte_arr[addr+3] =  (value >> 24) & 0xFF
+
+    def run(self, addr, writeData, MemWrite, MemRead):
+        if MemWrite:
+            self.write32(addr, writeData)
+        elif MemRead:
+            self.readData = self.read32(addr)
+    
+    def getReadData(self):
+        return self.readData

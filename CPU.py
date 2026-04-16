@@ -4,8 +4,8 @@ class CPU:
     
     def __init__(self, fileName, debug=False):
         self.__instructionMemory = instructionMemory(fileName)
-        self.__dataMemory = dataMemory()
-        self.__registerFile = registerFile()
+        self.__dataMemory = Memory()
+        self.__registerFile = RegisterFile()
         self.__ALU = ALU()
         self.__debug = debug
         self.__PC = 0
