@@ -70,7 +70,7 @@ class CPU:
                             self.ID_EX["readData2"] if not self.ID_EX["ALUSrc"] else self.ID_EX["immediate"],
                             self.ID_EX["shamt"])
             
-            self.__dataMemory.run(self.EX_MEM["ALUResult"], self.EX_MEM["writeData"], ControlSignals["MemWrite"], ControlSignals["MemRead"])
+            self.__dataMemory.run(self.EX_MEM["ALUResult"], self.EX_MEM["writeData"], self.EX_MEM["MemWrite"], self.EX_MEM["MemRead"])
 
             # update the program counter
             if self.ID_EX["Jump"]:
