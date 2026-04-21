@@ -17,13 +17,13 @@ class CPU:
         self.__PC = 0
         self.__cycles = 0
         self._last_control_signals = self.getControlSignals(None)
-        self.IF_ID = {"opcode": None, "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0, "shamt": 0}
-        self.ID_EX = {"opcode": None, "RegWrite": 0, "ALUSrc": 0, "MemWrite": 0, "MemtoReg": 0, "MemRead": 0,
+        self.IF_ID = {"opcode": "NOP", "rs": 0, "rt": 0, "rd": 0, "immediate": 0, "address": 0, "shamt": 0}
+        self.ID_EX = {"opcode": "NOP", "RegWrite": 0, "ALUSrc": 0, "MemWrite": 0, "MemtoReg": 0, "MemRead": 0,
                       "PCSrc": 0, "Jump": 0, "readData1": 0, "readData2": 0, "immediate": 0, "WriteReg": 0,
                       "address": 0, "shamt": 0}
-        self.EX_MEM = {"opcode": None, "RegWrite": 0, "MemWrite": 0, "MemtoReg": 0, "MemRead": 0,
+        self.EX_MEM = {"opcode": "NOP", "RegWrite": 0, "MemWrite": 0, "MemtoReg": 0, "MemRead": 0,
                        "WriteReg": 0, "ALUResult": 0, "writeData": 0}
-        self.MEM_WB = {"opcode": None, "RegWrite": 0, "MemtoReg": 0, "ReadData": 0, "ALUResult": 0, "WriteReg": 0}
+        self.MEM_WB = {"opcode": "NOP", "RegWrite": 0, "MemtoReg": 0, "ReadData": 0, "ALUResult": 0, "WriteReg": 0}
 
     def getControlSignals(self, opCode):
         control_signals = {
