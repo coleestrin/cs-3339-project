@@ -75,7 +75,7 @@ class CPU:
         maxPC = self.__instructionMemory.getMaxPC()
         debug_trace = []
 
-        while self.__PC < maxPC:
+        while self.__PC < maxPC + 16:
             current_pc = self.__PC
             self.__instructionMemory.run(self.__PC)
             instruction_before_step = self.__instructionMemory.getCurrentInstruction()
