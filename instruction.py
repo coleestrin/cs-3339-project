@@ -28,32 +28,35 @@ INSTRUCTION_TABLE = {
 }
 
 
-#PARSER
-def read_file(filepath):
+def _clean_source_lines(source_text):
     lines = []
-    labels = {} 
+    labels = {}
 
-    with open(filepath, 'r') as f:
-        for line in f:
-            # REMOVES COMMENTS AND WHITESPACE
-            line = line.split('#')[0].strip()
+    for raw_line in source_text.splitlines():
+        line = raw_line.split('#')[0].strip()
+        if not line:
+            continue
+
+        if ':' in line:
+            label, _, rest = line.partition(':')
+            labels[label.strip()] = len(lines)
+            line = rest.strip()
             if not line:
                 continue
 
-            # LABEL CHECK
-            if ':' in line:
-                label, _, rest = line.partition(':')
-                labels[label.strip()] = len(lines)
-                line = rest.strip()
-                if not line:
-                    continue
+        lines.append(line)
 
-            lines.append(line)
     return lines, labels
 
 
+#PARSER
+def read_file(filepath):
+    with open(filepath, 'r') as f:
+        return _clean_source_lines(f.read())
+
+
 #DECODER
-def decode(line, labels):
+def decode(line, labels, current_index=0):
     parts = line.replace(',', ' ').split()
     mnemonic = parts[0].upper()
     info = INSTRUCTION_TABLE[mnemonic]
@@ -95,7 +98,7 @@ def decode(line, labels):
             # BEQ $rs, $rt, label
             instr['rs']  = REGISTERS[parts[1]]
             instr['rt']  = REGISTERS[parts[2]]
-            instr['imm'] = labels[parts[3]]  # STORE TARGET INDEX
+            instr['imm'] = labels[parts[3]] - (current_index + 1)
         else:
             # ADDI $rt, $rs, imm
             instr['rt']  = REGISTERS[parts[1]]
@@ -124,18 +127,27 @@ def to_binary(instr):
 
 
 #PUTTING IT ALL TOGETHER
-def parse_file(filepath):
-    lines, labels = read_file(filepath)
+def parse_lines(lines, labels, emit_listing=False):
     instructions = []
 
-    for line in lines:
-        instr = decode(line, labels)
+    for i, line in enumerate(lines):
+        instr = decode(line, labels, current_index=i)
         instr['binary'] = to_binary(instr)
         instructions.append(instr)
 
-    # PRINTS BINARY LIST
-    for i, instr in enumerate(instructions):
-        print(f"{i:3}: {instr['binary']}  ({instr['mnemonic']})")
+    if emit_listing:
+        for i, instr in enumerate(instructions):
+            print(f"{i:3}: {instr['binary']}  ({instr['mnemonic']})")
 
     return instructions
+
+
+def parse_file(filepath, emit_listing=False):
+    lines, labels = read_file(filepath)
+    return parse_lines(lines, labels, emit_listing=emit_listing)
+
+    
+def parse_source(source_text, emit_listing=False):
+    lines, labels = _clean_source_lines(source_text)
+    return parse_lines(lines, labels, emit_listing=emit_listing)
 
