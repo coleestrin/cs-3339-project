@@ -5,20 +5,22 @@ class ALU:
         self.result = 0
 
     def run(self, opcode, operand1, operand2, shamt):
-        if opcode == "ADD" or opcode == "ADDI" or opcode == "LW" or opcode == "SW":
-            self.result = operand1 + operand2
-        elif opcode == "SUB" or opcode == "BEQ":
-            self.result = operand1 - operand2
-        elif opcode == "MUL":
-            self.result = operand1 * operand2
-        elif opcode == "AND":
-            self.result = operand1 & operand2
-        elif opcode == "OR":
-            self.result = operand1 | operand2
-        elif opcode == "SLL":
-            self.result = operand2 << shamt
-        elif opcode == "SRL":
-            self.result = operand2 >> shamt
+
+        match opcode:
+            case "ADD" | "ADDI" | "LW" | "SW":
+                self.result = operand1 + operand2
+            case "SUB" | "BEQ":
+                self.result = operand1 - operand2
+            case "MUL":
+                self.result = operand1 * operand2
+            case "AND":
+                self.result = operand1 & operand2
+            case "OR":
+                self.result = operand1 | operand2
+            case "SLL":
+                self.result = operand2 << shamt
+            case "SRL":
+                self.result = operand2 >> shamt
         
         self.zero = (self.result == 0)
 
