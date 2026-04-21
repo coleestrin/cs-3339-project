@@ -15,7 +15,7 @@ class Memory:
         return f"Memory(byte_arr = {self.byte_arr}, size = {self.size}, base_addr = {self.base_addr})"
     
     def check_valid_address(self, addr):
-        if addr > (self.base_addr + self.size) or addr < self.base_addr: 
+        if addr < self.base_addr or addr >= (self.base_addr + self.size):
             raise AddressError(f"Invalid memory address: 0x{addr:08X}")
     
     def check_address_alignment(self, addr, size):
@@ -30,7 +30,6 @@ class Memory:
     
     def write8(self, addr, value):
         self.check_valid_address(addr)
-        self.check_valid_address(addr + 3)
 
         self.byte_arr[addr] = value & 0xFF #puts only lowest 8 bits
     
@@ -63,6 +62,8 @@ class Memory:
             self.write32(addr, writeData)
         elif MemRead:
             self.readData = self.read32(addr)
+        else:
+            self.readData = 0
     
     def getReadData(self):
         return self.readData
