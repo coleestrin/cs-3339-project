@@ -66,3 +66,16 @@ class Memory:
     
     def getReadData(self):
         return self.readData
+
+    def snapshot_words(self):
+        words = []
+        for addr in range(self.base_addr, self.base_addr + self.size, 4):
+            value = self.read32(addr)
+            words.append({
+                "address": addr,
+                "hexAddress": f"0x{addr:08X}",
+                "decimal": value,
+                "hex": f"0x{value & 0xFFFFFFFF:08X}",
+                "nonZero": value != 0,
+            })
+        return words

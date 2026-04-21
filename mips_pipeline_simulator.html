@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIPS Pipeline Simulator</title>
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --panel: rgba(255, 251, 245, 0.92);
+      --panel-strong: #fffdf8;
+      --ink: #1f2430;
+      --muted: #5c6473;
+      --line: rgba(47, 55, 73, 0.12);
+      --accent: #0d6c63;
+      --accent-soft: rgba(13, 108, 99, 0.12);
+      --warn: #b45309;
+      --shadow: 0 24px 60px rgba(39, 46, 60, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(13, 108, 99, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(180, 83, 9, 0.15), transparent 25%),
+        linear-gradient(180deg, #fbf7ef 0%, #f2eadf 100%);
+      min-height: 100vh;
+    }
+
+    .shell {
+      width: min(1280px, calc(100% - 32px));
+      margin: 24px auto 40px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero {
+      padding: 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 70ch;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 1fr);
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .toggle {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    select,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      color: var(--ink);
+      padding: 14px 16px;
+    }
+
+    textarea {
+      min-height: 420px;
+      resize: vertical;
+      line-height: 1.5;
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #0d6c63, #155e75);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: progress;
+    }
+
+    .status {
+      min-height: 1.4em;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .results {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      font-size: 1.35rem;
+    }
+
+    .tables {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--panel-strong);
+    }
+
+    .table-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .table-head span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .scroll {
+      max-height: 420px;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #f8f3ea;
+      z-index: 1;
+    }
+
+    .debug {
+      display: grid;
+      gap: 14px;
+      max-height: 720px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .trace-card {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .trace-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .trace-title {
+      font-weight: 700;
+      font-size: 1.02rem;
+    }
+
+    .trace-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .code-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfaf5;
+      padding: 12px;
+      font-family: "Courier New", monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .empty {
+      color: var(--warn);
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .tables,
+      .trace-grid,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      textarea {
+        min-height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>MIPS Pipeline Simulator</h1>
+      <p>
+        Run the Python simulator from this project in the browser, inspect the final register file and memory state,
+        and switch on debug mode to see the pipeline state registers and emitted control signals after each step.
+      </p>
+    </section>
+
+    <section class="workspace">
+      <section class="panel">
+        <h2>Program Input</h2>
+        <div class="controls">
+          <div class="field">
+            <label for="sampleSelect">Load a project assembly file</label>
+            <select id="sampleSelect">
+              <option value="">Choose a sample file</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="programInput">Assembly Program</label>
+            <textarea id="programInput" spellcheck="false" placeholder="Paste or edit your MIPS assembly here."></textarea>
+          </div>
+
+          <div class="action-row">
+            <label class="toggle">
+              <input id="debugToggle" type="checkbox">
+              Debug Mode
+            </label>
+            <button id="runButton" type="button">Run Simulator</button>
+          </div>
+
+          <div class="status" id="statusText">Ready.</div>
+        </div>
+      </section>
+
+      <section class="results">
+        <section class="panel">
+          <h2>Final Machine State</h2>
+          <div class="summary">
+            <div class="metric">
+              <span>Cycles</span>
+              <strong id="cycleCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>Non-Zero Registers</span>
+              <strong id="nonZeroRegisters">0</strong>
+            </div>
+            <div class="metric">
+              <span>Non-Zero Memory Words</span>
+              <strong id="nonZeroMemory">0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="tables">
+          <section class="panel table-wrap">
+            <div class="table-head">
+              <strong>Register File</strong>
+              <span id="registerSummary">32 registers</span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Register</th>
+                    <th>Binary</th>
+                    <th>Decimal</th>
+                  </tr>
+                </thead>
+                <tbody id="registerTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel table-wrap">
+            <div class="table-head">
+              <strong>Memory</strong>
+              <span id="memorySummary">Word-aligned view</span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Address (Binary)</th>
+                    <th>Binary</th>
+                    <th>Decimal</th>
+                  </tr>
+                </thead>
+                <tbody id="memoryTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="panel">
+          <h2>Debug Trace</h2>
+          <div class="debug" id="debugContainer">
+            <div class="empty">Enable debug mode and run a program to populate the trace.</div>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const sampleSelect = document.getElementById("sampleSelect");
+    const programInput = document.getElementById("programInput");
+    const debugToggle = document.getElementById("debugToggle");
+    const runButton = document.getElementById("runButton");
+    const statusText = document.getElementById("statusText");
+    const registerTableBody = document.getElementById("registerTableBody");
+    const memoryTableBody = document.getElementById("memoryTableBody");
+    const debugContainer = document.getElementById("debugContainer");
+    const cycleCount = document.getElementById("cycleCount");
+    const nonZeroRegisters = document.getElementById("nonZeroRegisters");
+    const nonZeroMemory = document.getElementById("nonZeroMemory");
+    const registerSummary = document.getElementById("registerSummary");
+    const memorySummary = document.getElementById("memorySummary");
+
+    const state = {
+      samples: new Map(),
+    };
+
+    function formatBinary32(value) {
+      return (value >>> 0).toString(2).padStart(32, "0");
+    }
+
+    function formatInstruction(instruction) {
+      if (!instruction) return "No instruction";
+      return `${instruction.mnemonic} | ${instruction.binary}`;
+    }
+
+    function renderRegisters(registers) {
+      registerTableBody.innerHTML = registers.map((register) => `
+        <tr>
+          <td>${register.name}</td>
+          <td>${formatBinary32(register.decimal)}</td>
+          <td>${register.decimal}</td>
+        </tr>
+      `).join("");
+
+      const active = registers.filter((register) => register.decimal !== 0).length;
+      nonZeroRegisters.textContent = String(active);
+      registerSummary.textContent = `${registers.length} registers`;
+    }
+
+    function renderMemory(memory) {
+      memoryTableBody.innerHTML = memory.map((word) => `
+        <tr>
+          <td>${formatBinary32(word.address)}</td>
+          <td>${formatBinary32(word.decimal)}</td>
+          <td>${word.decimal}</td>
+        </tr>
+      `).join("");
+
+      const active = memory.filter((word) => word.nonZero).length;
+      nonZeroMemory.textContent = String(active);
+      memorySummary.textContent = `${memory.length} word slots`;
+    }
+
+    function renderDebug(trace) {
+      if (!trace.length) {
+        debugContainer.innerHTML = '<div class="empty">Enable debug mode and run a program to populate the trace.</div>';
+        return;
+      }
+
+      debugContainer.innerHTML = trace.map((step) => `
+        <article class="trace-card">
+          <div class="trace-top">
+            <div>
+              <div class="trace-title">Cycle ${step.cycle}</div>
+              <div>PC ${step.pc}</div>
+            </div>
+            <div>${formatInstruction(step.instruction)}</div>
+          </div>
+          <div class="trace-grid">
+            <div>
+              <strong>Control Signals</strong>
+              <div class="code-box">${JSON.stringify(step.controlSignals, null, 2)}</div>
+            </div>
+            <div>
+              <strong>State Registers</strong>
+              <div class="code-box">${JSON.stringify(step.stateRegisters, null, 2)}</div>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderReport(report) {
+      cycleCount.textContent = String(report.cycles);
+      renderRegisters(report.registers);
+      renderMemory(report.memory);
+      renderDebug(report.debugTrace || []);
+    }
+
+    async function loadSampleList() {
+      const response = await fetch("/api/files");
+      const payload = await response.json();
+
+      for (const fileName of payload.files) {
+        const option = document.createElement("option");
+        option.value = fileName;
+        option.textContent = fileName;
+        sampleSelect.appendChild(option);
+      }
+
+      if (payload.files.length) {
+        sampleSelect.value = payload.files[0];
+        await loadSampleFile(payload.files[0]);
+      }
+    }
+
+    async function loadSampleFile(fileName) {
+      const response = await fetch(fileName);
+      const text = await response.text();
+      state.samples.set(fileName, text);
+      programInput.value = text.trim();
+    }
+
+    sampleSelect.addEventListener("change", async (event) => {
+      const fileName = event.target.value;
+      if (!fileName) return;
+      if (state.samples.has(fileName)) {
+        programInput.value = state.samples.get(fileName);
+        return;
+      }
+      await loadSampleFile(fileName);
+    });
+
+    runButton.addEventListener("click", async () => {
+      runButton.disabled = true;
+      statusText.textContent = "Running simulator...";
+
+      try {
+        const response = await fetch("/api/simulate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            program: programInput.value,
+            debug: debugToggle.checked,
+          }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Simulation failed.");
+        }
+
+        renderReport(payload);
+        statusText.textContent = debugToggle.checked
+          ? "Simulation complete with debug trace."
+          : "Simulation complete.";
+      } catch (error) {
+        statusText.textContent = error.message;
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+
+    loadSampleList().catch((error) => {
+      statusText.textContent = `Failed to load sample files: ${error.message}`;
+    });
+  </script>
+</body>
+</html>
