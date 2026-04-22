@@ -98,7 +98,10 @@ def decode(line, labels, current_index=0):
             # BEQ $rs, $rt, label
             instr['rs']  = REGISTERS[parts[1]]
             instr['rt']  = REGISTERS[parts[2]]
-            instr['imm'] = labels[parts[3]] - (current_index + 1)
+            if parts[3].isnumeric():
+                instr['imm'] = int(parts[3])
+            else:
+                instr['imm'] = labels[parts[3]] - (current_index + 1)
         else:
             # ADDI $rt, $rs, imm
             instr['rt']  = REGISTERS[parts[1]]
@@ -106,7 +109,10 @@ def decode(line, labels, current_index=0):
             instr['imm'] = int(parts[3])
 
     elif info['type'] == 'J':
-        instr['address'] = labels[parts[1]]
+        if parts[1].isnumeric():
+            instr['address'] = (int(parts[1])>>2) & 0x3FFFFFF
+        else:
+            instr['address'] = labels[parts[1]]
 
     return instr
 
