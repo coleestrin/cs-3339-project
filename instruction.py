@@ -58,11 +58,11 @@ def read_file(filepath):
 #DECODER
 def decode(line, labels, current_index=0):
     parts = line.replace(',', ' ').split()
-    mnemonic = parts[0].upper()
-    info = INSTRUCTION_TABLE[mnemonic]
+    name = parts[0].upper()
+    info = INSTRUCTION_TABLE[name]
 
     instr = {
-        'mnemonic': mnemonic,
+        'name': name,
         'type': info['type'],
         'opcode': info['opcode'],
     }
@@ -71,7 +71,7 @@ def decode(line, labels, current_index=0):
         instr.update({'rs': 0, 'rt': 0, 'rd': 0, 'shamt': 0, 'funct': 0})
 
     elif info['type'] == 'R':
-        if mnemonic in ('SLL', 'SRL'):
+        if name in ('SLL', 'SRL'):
             # SLL $rd, $rt, shamt
             instr['rd']    = REGISTERS[parts[1]]
             instr['rt']    = REGISTERS[parts[2]]
@@ -87,14 +87,14 @@ def decode(line, labels, current_index=0):
             instr['funct'] = info['funct']
 
     elif info['type'] == 'I':
-        if mnemonic in ('LW', 'SW'):
+        if name in ('LW', 'SW'):
             # LW $rt, offset($rs)
             instr['rt']  = REGISTERS[parts[1]]
             offset_reg   = parts[2]
             offset, reg  = offset_reg.rstrip(')').split('(')
             instr['rs']  = REGISTERS[reg]
             instr['imm'] = int(offset)
-        elif mnemonic == 'BEQ':
+        elif name == 'BEQ':
             # BEQ $rs, $rt, label
             instr['rs']  = REGISTERS[parts[1]]
             instr['rt']  = REGISTERS[parts[2]]
@@ -137,7 +137,7 @@ def parse_lines(lines, labels, emit_listing=False):
 
     if emit_listing:
         for i, instr in enumerate(instructions):
-            print(f"{i:3}: {instr['binary']}  ({instr['mnemonic']})")
+            print(f"{i:3}: {instr['binary']}  ({instr['name']})")
 
     return instructions
 
@@ -150,4 +150,3 @@ def parse_file(filepath, emit_listing=False):
 def parse_source(source_text, emit_listing=False):
     lines, labels = _clean_source_lines(source_text)
     return parse_lines(lines, labels, emit_listing=emit_listing)
-
