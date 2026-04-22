@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MIPS Pipeline Simulator</title>
+  <title>MIPS Simulator</title>
   <style>
     :root {
       --bg: #f5efe4;
@@ -327,8 +327,8 @@
     <section class="hero">
       <h1>MIPS Pipeline Simulator</h1>
       <p>
-        Run the Python simulator from this project in the browser, inspect the final register file and memory state,
-        and switch on debug mode to see the pipeline state registers and emitted control signals after each step.
+        Run the MIPS simulator from this project in the browser. The simulator will display the final register file and memory state.
+        Switch on debug mode to see the state registers and emitted control signals after each step.
       </p>
     </section>
 
@@ -337,7 +337,7 @@
         <h2>Program Input</h2>
         <div class="controls">
           <div class="field">
-            <label for="sampleSelect">Load a project assembly file</label>
+            <label for="sampleSelect">Load a asm file</label>
             <select id="sampleSelect">
               <option value="">Choose a sample file</option>
             </select>
@@ -353,7 +353,7 @@
               <input id="debugToggle" type="checkbox">
               Debug Mode
             </label>
-            <button id="runButton" type="button">Run Simulator</button>
+            <button id="runButton" type="button">Run</button>
           </div>
 
           <div class="status" id="statusText">Ready.</div>
@@ -409,7 +409,6 @@
                 <thead>
                   <tr>
                     <th>Address (Binary)</th>
-                    <th>Binary</th>
                     <th>Decimal</th>
                   </tr>
                 </thead>
@@ -422,7 +421,7 @@
         <section class="panel">
           <h2>Debug Trace</h2>
           <div class="debug" id="debugContainer">
-            <div class="empty">Enable debug mode and run a program to populate the trace.</div>
+            <div class="empty">Enable debug mode and run a program to show the trace.</div>
           </div>
         </section>
       </section>
@@ -475,7 +474,6 @@
       memoryTableBody.innerHTML = memory.map((word) => `
         <tr>
           <td>${formatBinary32(word.address)}</td>
-          <td>${formatBinary32(word.decimal)}</td>
           <td>${word.decimal}</td>
         </tr>
       `).join("");
@@ -487,7 +485,7 @@
 
     function renderDebug(trace) {
       if (!trace.length) {
-        debugContainer.innerHTML = '<div class="empty">Enable debug mode and run a program to populate the trace.</div>';
+        debugContainer.innerHTML = '<div class="empty">Enable debug mode and run a program to show the trace.</div>';
         return;
       }
 
@@ -586,7 +584,7 @@
     });
 
     loadSampleList().catch((error) => {
-      statusText.textContent = `Failed to load sample files: ${error.message}`;
+      statusText.textContent = `Failed to load asm files: ${error.message}`;
     });
   </script>
 </body>
