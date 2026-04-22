@@ -2,6 +2,8 @@
 
 CS3339 course project for simulating a 5 stage pipelined MIPS processor.
 
+[Slides](https://docs.google.com/presentation/d/1NCWQGVg_mk3MEgAe3G2RwxemmeR6nien3Q79pgtzoXA/edit?usp=sharing)
+
 ## Requirements
 
 - Python 3
