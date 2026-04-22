@@ -28,7 +28,7 @@ def test_parser(filepath):
         else:  # J
             fields = f"addr={instr.get('address','?')}"
 
-        print(f"{i:<5} {instr['mnemonic']:<6} {instr['type']:<6} "
+        print(f"{i:<5} {instr['name']:<6} {instr['type']:<6} "
               f"{instr['binary']:>32}   {fields}")
 
     print(f"\nTotal instructions parsed: {len(instructions)}")
