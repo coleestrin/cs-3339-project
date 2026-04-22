@@ -1,6 +1,4 @@
-import argparse
 import json
-import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -77,21 +75,8 @@ class SimulatorHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run the MIPS simulator web UI")
-    parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind")
-    parser.add_argument("--port", type=int, default=8000, help="Port to listen on")
-    args = parser.parse_args()
-
-    try:
-        server = ThreadingHTTPServer((args.host, args.port), SimulatorHandler)
-    except OSError as exc:
-        print(
-            f"Error: could not start web server on {args.host}:{args.port} ({exc}).",
-            file=sys.stderr,
-        )
-        raise SystemExit(1)
-
-    print(f"MIPS simulator UI available at http://{args.host}:{args.port}")
+    server = ThreadingHTTPServer(("0.0.0.0", 8000), SimulatorHandler)
+    print("MIPS simulator UI available at http://0.0.0.0:8000")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
