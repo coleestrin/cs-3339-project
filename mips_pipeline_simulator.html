@@ -390,7 +390,7 @@
                 <thead>
                   <tr>
                     <th>Register</th>
-                    <th>Binary</th>
+                    <th>Hex</th>
                     <th>Decimal</th>
                   </tr>
                 </thead>
@@ -408,7 +408,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Address (Binary)</th>
+                    <th>Address (Hex)</th>
                     <th>Decimal</th>
                   </tr>
                 </thead>
@@ -451,6 +451,10 @@
       return (value >>> 0).toString(2).padStart(32, "0");
     }
 
+    function formatHex32(value) {
+      return `0x${(value >>> 0).toString(16).toUpperCase().padStart(8, "0")}`;
+    }
+
     function formatInstruction(instruction) {
       if (!instruction) return "No instruction";
       return `${instruction.mnemonic} | ${instruction.binary}`;
@@ -459,8 +463,8 @@
     function renderRegisters(registers) {
       registerTableBody.innerHTML = registers.map((register) => `
         <tr>
-          <td>${register.name}</td>
-          <td>${formatBinary32(register.decimal)}</td>
+          <td>$${register.name}</td>
+          <td>${formatHex32(register.decimal)}</td>
           <td>${register.decimal}</td>
         </tr>
       `).join("");
@@ -473,7 +477,7 @@
     function renderMemory(memory) {
       memoryTableBody.innerHTML = memory.map((word) => `
         <tr>
-          <td>${formatBinary32(word.address)}</td>
+          <td>${formatHex32(word.address)}</td>
           <td>${word.decimal}</td>
         </tr>
       `).join("");
