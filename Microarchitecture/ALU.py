@@ -1,3 +1,5 @@
+import numpy as np
+
 class ALU:
 
     def __init__(self):
@@ -5,6 +7,9 @@ class ALU:
         self.result = 0
 
     def run(self, opcode, operand1, operand2, shamt):
+
+        operand1 = np.int32(operand1)
+        operand2 = np.int32(operand2)
 
         match opcode:
             case "ADD" | "ADDI" | "LW" | "SW":
@@ -23,6 +28,8 @@ class ALU:
                 self.result = operand2 >> shamt
         
         self.zero = (self.result == 0)
+
+        self.result = int(self.result & 0xFFFFFFFF)
 
     def getResult(self):
         return self.result
