@@ -25,7 +25,7 @@ class InstructionMemory:
         return self.current_instruction
     
     def getOpcode(self):
-        return self.current_instruction["mnemonic"] if self.current_instruction and "mnemonic" in self.current_instruction else None
+        return self.current_instruction["name"] if self.current_instruction and "mnemonic" in self.current_instruction else None
     
     def getRs(self):
         return self.current_instruction["rs"] if self.current_instruction and "rs" in self.current_instruction else 0
