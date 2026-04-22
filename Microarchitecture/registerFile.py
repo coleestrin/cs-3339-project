@@ -1,4 +1,3 @@
-import numpy as np
 MASK32 = 0xFFFFFFFF
 
 REG_NAMES = (
@@ -9,14 +8,18 @@ REG_NAMES = (
 )
 
 class RegisterFile:
-    _reg_array = np.zeros(32, dtype=np.int32)
+    def __init__(self):
+        self._reg_array = [0] * 32
+        self.readData1 = 0
+        self.readData2 = 0
     
     def reset(self):
-        for i in self._reg_array:
-            self._reg_array[i] = 0
+        self._reg_array = [0] * 32
+        self.readData1 = 0
+        self.readData2 = 0
 
     def read(self, i):
-        if i > 32:
+        if i < 0 or i >= 32:
             raise ValueError(f"Register {i} is not a valid register")
         if i == 0:
             return 0        
@@ -30,6 +33,18 @@ class RegisterFile:
     def dump(self):
         for i in range(32):
             print(f"${REG_NAMES[i]} ({i:02d}) = 0x{self.read(i):08X}")
+
+    def snapshot(self):
+        registers = []
+        for i in range(32):
+            value = self.read(i)
+            registers.append({
+                "index": i,
+                "name": REG_NAMES[i],
+                "decimal": value,
+                "hex": f"0x{value & MASK32:08X}",
+            })
+        return registers
 
     def run(self, readReg1, readReg2, writeReg, writeData, RegWrite):
         if RegWrite:
