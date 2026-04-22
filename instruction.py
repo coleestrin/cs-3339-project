@@ -67,7 +67,7 @@ def decode(line, labels, current_index=0):
         'opcode': info['opcode'],
     }
 
-    if mnemonic == 'NOP':
+    if name == 'NOP':
         instr.update({'rs': 0, 'rt': 0, 'rd': 0, 'shamt': 0, 'funct': 0})
 
     elif info['type'] == 'R':
