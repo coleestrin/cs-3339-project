@@ -100,7 +100,7 @@ class CPU:
 
             # update the program counter
             if self.ID_EX["Jump"]:
-                self.__PC = (self.ID_EX["address"]>>2) + ( (self.__PC + 4) & 0xF0000000) 
+                self.__PC = (self.ID_EX["address"]<<2) + ( (self.__PC + 4) & 0xF0000000) 
             elif self.ID_EX["PCSrc"] and self.__ALU.zeroFlag():
                 self.__PC += (self.ID_EX["immediate"] << 2) + 4
             else:
