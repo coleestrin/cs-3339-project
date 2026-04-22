@@ -91,7 +91,7 @@ def main():
         )
         raise SystemExit(1)
 
-    print(f"MIPS simulator UI available at http://{args.host}:{args.port}")
+    print(f"MIPS simulator available at: http://{args.host}:{args.port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
