@@ -1,7 +1,13 @@
 # EXAMPLE ASM FILE FOR TESTING
 
 ADDI $t0, $zero, 5
+NOP
+NOP
+NOP
 ADDI $t1, $zero, 3
+NOP
+NOP
+NOP
 ADD  $t2, $t0, $t1
 SUB  $t3, $t0, $t1
 MUL  $t4, $t0, $t1
