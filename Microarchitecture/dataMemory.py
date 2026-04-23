@@ -70,7 +70,7 @@ class Memory:
     def snapshot_words(self):
         words = []
         for addr in range(self.base_addr, self.base_addr + self.size, 4):
-            value = self.read32(addr)
+            value = int(self.read32(addr))
             words.append({
                 "address": addr,
                 "hexAddress": f"0x{addr:08X}",

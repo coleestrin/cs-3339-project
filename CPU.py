@@ -55,12 +55,25 @@ class CPU:
         return control_signals.get(opCode)
     
     def _snapshot_pipeline(self):
-        return {
+        pipeline_state = {
             "IF_ID": dict(self.IF_ID),
             "ID_EX": dict(self.ID_EX),
             "EX_MEM": dict(self.EX_MEM),
-            "MEM_WB": dict(self.MEM_WB),
+            "MEM_WB": dict(self.MEM_WB)
         }
+        pipeline_state["IF_ID"]["immediate"] = int(pipeline_state["IF_ID"]["immediate"])
+
+        pipeline_state["ID_EX"]["immediate"] = int(pipeline_state["ID_EX"]["immediate"])
+        pipeline_state["ID_EX"]["readData1"] = int(pipeline_state["ID_EX"]["readData1"])
+        pipeline_state["ID_EX"]["readData2"] = int(pipeline_state["ID_EX"]["readData2"])
+
+        pipeline_state["EX_MEM"]["ALUResult"] = int(pipeline_state["EX_MEM"]["ALUResult"])
+        pipeline_state["EX_MEM"]["writeData"] = int(pipeline_state["EX_MEM"]["writeData"])
+
+
+        pipeline_state["MEM_WB"]["ALUResult"] = int(pipeline_state["MEM_WB"]["ALUResult"])
+                                                                           
+        return pipeline_state
 
     def _snapshot_state(self):
         return {
@@ -74,6 +87,7 @@ class CPU:
         }
 
     def _final_report(self, debug_trace):
+        print(self.__dataMemory.snapshot_words()[0:2])
         return {
             "cycles": self.__cycles,
             "registers": self.__registerFile.snapshot(),
@@ -102,9 +116,9 @@ class CPU:
 
             # update the program counter
             if self.ID_EX["Jump"]:
-                self.__PC = (self.ID_EX["address"]<<2) + ( (self.__PC + 4) & 0xF0000000) 
+                self.__PC = int((self.ID_EX["address"]<<2) + ( (self.__PC + 4) & 0xF0000000) )
             elif self.ID_EX["PCSrc"] and self.__ALU.zeroFlag():
-                self.__PC += (self.ID_EX["immediate"] << 2) - 4 #minus 4 to account for the two stages of pipelining 
+                self.__PC += int((self.ID_EX["immediate"] << 2) - 4) #minus 4 to account for the two stages of pipelining 
             else:
                 self.__PC += 4
 

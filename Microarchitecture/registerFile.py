@@ -37,7 +37,7 @@ class RegisterFile:
     def snapshot(self):
         registers = []
         for i in range(32):
-            value = self.read(i)
+            value = int(self.read(i))
             registers.append({
                 "index": i,
                 "name": REG_NAMES[i],
