@@ -1,7 +1,7 @@
 main:		
 		#simulate .data section by simulating start of memory storing data
 		#set start of mem
-		addi $s0, $zero, 0x10010000 #what MARS starts memory at. Can be changed
+		addi $s0, $zero, 0 
 		
 		addi $t9, $zero, 5
 		sw $t9, 0($s0) #int stored in memory at 0
