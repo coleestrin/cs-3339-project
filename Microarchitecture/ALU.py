@@ -8,8 +8,8 @@ class ALU:
 
     def run(self, opcode, operand1, operand2, shamt):
 
-        operand1 = np.int32(operand1)
-        operand2 = np.int32(operand2)
+        operand1 = np.uint32(operand1)
+        operand2 = np.uint32(operand2)
 
         match opcode:
             case "ADD" | "ADDI" | "LW" | "SW":
