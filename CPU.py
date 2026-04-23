@@ -3,6 +3,8 @@ from Microarchitecture.dataMemory import Memory
 from Microarchitecture.registerFile import RegisterFile
 from Microarchitecture.ALU import ALU
 
+import numpy as np
+
 MEMORY_SIZE = 1024  # Size of data memory in bytes
 BASE_ADDRESS = 0x0  # Base address for data memory
 
@@ -133,7 +135,7 @@ class CPU:
                           "Jump" : self.ControlSignals["Jump"], 
                           "readData1": self.__registerFile.getReadData1(), 
                           "readData2": self.__registerFile.getReadData2(), 
-                          "immediate": self.IF_ID["immediate"], 
+                          "immediate": np.int32(self.IF_ID["immediate"]), 
                           "WriteReg": self.IF_ID["rd"] if self.ControlSignals["RegDst"] else self.IF_ID["rt"], 
                           "address": self.IF_ID["address"],
                           "shamt": self.IF_ID["shamt"]}
@@ -142,7 +144,7 @@ class CPU:
                            "rs": self.__instructionMemory.getRs(),
                            "rt": self.__instructionMemory.getRt(),
                            "rd": self.__instructionMemory.getRd(),
-                           "immediate": self.__instructionMemory.getImmediate(),
+                           "immediate": np.int32(self.__instructionMemory.getImmediate()),
                            "address": self.__instructionMemory.getAddress(),
                            "shamt": self.__instructionMemory.getShamt()}
             
