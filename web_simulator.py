@@ -76,7 +76,7 @@ class SimulatorHandler(BaseHTTPRequestHandler):
 
 def main():
     server = ThreadingHTTPServer(("0.0.0.0", 8000), SimulatorHandler)
-    print("MIPS simulator UI available at http://0.0.0.0:8000")
+    print("MIPS simulator UI available at http://localhost:8000 or http://0.0.0.0:8000")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
