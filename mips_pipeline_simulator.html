@@ -309,6 +309,62 @@
       color: var(--warn);
     }
 
+    .reg-snap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reg-snap strong {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .reg-snap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 4px;
+    }
+
+    .reg-chip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-family: "Courier New", monospace;
+      font-size: 0.8rem;
+      background: #fcfaf5;
+      border: 1px solid var(--line);
+      gap: 8px;
+    }
+
+    .reg-chip .reg-name {
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .reg-chip .reg-val {
+      color: var(--ink);
+      text-align: right;
+    }
+
+    .reg-chip.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .reg-chip.active .reg-name {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .reg-chip.active .reg-val {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
     @media (max-width: 980px) {
       .workspace,
       .tables,
@@ -463,6 +519,12 @@
       return `${instruction.name} | ${instruction.binary}`;
     }
 
+    function formatRegisterSnapshot(registers) {
+      return registers
+        .map((register) => `$${register.name}: ${formatHex32(register.decimal)} (${register.decimal})`)
+        .join("\n");
+    }
+
     function renderRegisters(registers) {
       registerTableBody.innerHTML = registers.map((register) => `
         <tr>
@@ -490,6 +552,14 @@
       memorySummary.textContent = `${memory.length} word slots`;
     }
 
+    function renderReg(registers) {
+      if (!registers.length) return '<div class="empty">No register data.</div>';
+      return `<div class="reg-snap-grid">${registers.map((r) => {
+        const active = r.decimal !== 0 ? " active" : "";
+        return `<div class="reg-chip${active}"><span class="reg-name">$${r.name}</span><span class="reg-val">${formatHex32(r.decimal)}</span></div>`;
+      }).join("")}</div>`;
+    }
+
     function renderDebug(trace) {
       if (!trace.length) {
         debugContainer.innerHTML = '<div class="empty">Enable debug mode and run a program to show the trace.</div>';
@@ -514,6 +584,10 @@
               <strong>State Registers</strong>
               <div class="code-box">${JSON.stringify(step.stateRegisters, null, 2)}</div>
             </div>
+          </div>
+          <div class="reg-snap">
+            <strong>Register File After Cycle ${step.cycle}</strong>
+            ${renderReg(step.registerFile || [])}
           </div>
         </article>
       `).join("");
