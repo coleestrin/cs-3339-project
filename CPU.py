@@ -60,11 +60,11 @@ class CPU:
             "MEM_WB": dict(self.MEM_WB),
         }
 
-    def _snapshot_state(self, instruction_before_step):
+    def _snapshot_state(self):
         return {
             "cycle": self.__cycles,
             "pc": self.__PC,
-            "instruction": instruction_before_step,
+            "instruction": self.__instructionMemory.getCurrentInstruction(),
             "controlSignals": dict(self.ControlSignals),
             "stateRegisters": self._snapshot_pipeline(),
             "registerFile": self.__registerFile.snapshot(),
@@ -153,7 +153,7 @@ class CPU:
                                     self.MEM_WB["RegWrite"])
                                     
             if self.__debug:
-                debug_trace.append(self._snapshot_state(self.__instructionMemory.getCurrentInstruction()))
+                debug_trace.append(self._snapshot_state())
             
             self.__cycles += 1
 
