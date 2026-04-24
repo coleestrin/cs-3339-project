@@ -36,7 +36,7 @@ Example:
 python3 main.py testfile.asm
 ```
 
-## Command Line Arguments
+## Command Line Arguments (for main.py)
 
 - `file`: required path to the input MIPS assembly file
 - `-d`, `--debug`: optional debug flag
