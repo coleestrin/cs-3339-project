@@ -24,6 +24,11 @@ Run the simulator with:
 ```bash
 python3 main.py <file.asm>
 ```
+To run with web page:
+
+```bash
+python3 web_simulator.py
+```
 
 Example:
 
